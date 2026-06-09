@@ -552,9 +552,6 @@ Prefer:
 
 ---
 
-## 15. Relation to issue tracker doc
+## 15. Maintenance note
 
-See also:
-- `docs/BOILERPLATE_ISSUES.md`
-
-That document lists current known/suspected problems. This document defines intended conventions. If an item in the issue doc conflicts with this convention doc, update the issue item as "intended but needs implementation/testing/documentation" instead of treating it as a bug.
+This document defines intended conventions. Track active implementation gaps in Paperclip issues, not in long-lived problem inventory docs.

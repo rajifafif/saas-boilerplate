@@ -2,34 +2,36 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Organization;
+use App\Services\TenantResolver;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class TenantAwareMiddleware
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param Closure(Request): (Response) $next
-     */
     public function handle(Request $request, Closure $next): Response
     {
-        $organizationId = $request->header('X-ORGANIZATION-ID') ?? $request->header('X-TENANT-ID');
+        try {
+            $context = app(TenantResolver::class)->resolve($request);
+        } catch (BadRequestHttpException $exception) {
+            return response()->json(['message' => $exception->getMessage(), 'error' => 'organization_context_missing'], 400);
+        } catch (AccessDeniedHttpException $exception) {
+            return response()->json(['message' => $exception->getMessage(), 'error' => 'organization_access_denied'], 403);
+        } catch (NotFoundHttpException $exception) {
+            $error = str_contains($exception->getMessage(), 'Branch') ? 'branch_not_found' : 'organization_not_found';
 
-        if (!$organizationId) {
-            return response()->json(['error' => 'X-ORGANIZATION-ID header is missing'], 400);
+            return response()->json(['message' => $exception->getMessage(), 'error' => $error], 404);
         }
 
-        $organization = Organization::find($organizationId);
+        app()->instance('organization_id', $context->organizationId());
+        app()->instance('currentOrganization', $context->organization);
 
-        if (!$organization) {
-            return response()->json(['error' => 'Organization not found'], 404);
+        if ($context->branch) {
+            app()->instance('branch_id', $context->branchId());
         }
-
-        app()->instance('organization_id', $organization->id);
-        app()->instance('currentOrganization', $organization);
 
         return $next($request);
     }

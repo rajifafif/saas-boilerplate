@@ -156,9 +156,9 @@ export const useOrganizationStore = defineStore('organization', {
           }
           this.setCurrentOrganization(org)
 
-          // Set branch from response
+          // Set branch from response and keep persisted branch context in sync.
           if (response?.data?.branch) {
-            this.currentBranch = response.data.branch
+            this.setCurrentBranch(response.data.branch)
           }
         }
 

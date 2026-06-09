@@ -308,4 +308,3 @@ Before removing optional packages:
 ## Related docs
 
 - `docs/BOILERPLATE_CONVENTIONS.md`
-- `docs/BOILERPLATE_ISSUES.md`
