@@ -583,7 +583,7 @@ Recommendation summary:
 - Scout + Typesense: choose only if full-text search is important. If yes, use both together: Scout as Laravel abstraction, Typesense as engine. If search is simple, use database search first.
 - Firebase: avoid unless there is a clear need for Firebase Auth/FCM/Google ecosystem. Current auth already has JWT/Sanctum concepts, so Firebase adds auth confusion if not explicitly chosen.
 - ClickHouse: avoid for the boilerplate core. Add later only for high-volume analytics/event reporting. PostgreSQL/MySQL is enough first.
-- Multitenancy package: verify whether it adds value over current organization/branch convention. If the app uses single-database `organization_id` scoping, Spatie Multitenancy may be unnecessary complexity unless it is intentionally used for tenant tasks/context switching.
+- Spatie Multitenancy: current app already has custom single-database `organization_id` tenancy via middleware, app container context, `TenantScope`, and `BelongsToOrganization`. Spatie Multitenancy is not required for this convention unless the project deliberately wants package-managed tenant lifecycle, tenant-aware queues/tasks, config switching, or future multi-database tenancy.
 
 File:
 - `saas-backend/composer.json`

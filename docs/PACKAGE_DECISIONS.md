@@ -207,20 +207,47 @@ Risk:
 
 ### Spatie Multitenancy
 
-Status: optional / needs verification.
+Status: optional / currently not the main tenancy mechanism.
 
-Current convention:
+Current observed state:
 - Tenant boundary is `organization_id`.
 - Branch is operational context.
-- Current app appears to use custom tenant middleware, app container context, and `organization_id` global scopes.
+- Current app mainly uses custom tenancy:
+  - `TenantMiddleware` / `TenantAwareMiddleware`
+  - app container values such as `organization_id`
+  - `TenantScope`
+  - `BelongsToOrganization`
+- A custom `App\Services\TenantFinder` references Spatie Multitenancy, but the package does not appear fully wired as the primary tenancy system.
+- `Organization` currently does not appear to implement Spatie's tenant contract/model pattern.
+- No `config/multitenancy.php` was found during quick audit.
 
 Recommendation:
-- Verify actual usage before relying on this package.
-- If the app stays single-database with `organization_id` scoping, Spatie Multitenancy may be unnecessary complexity.
-- Use it only if it provides clear value for tenant context tasks, tenant-aware queues, tenant switching, or future multi-database tenancy.
+- Spatie Multitenancy is not required for the current single-database `organization_id` tenancy convention.
+- Keep it optional/deferred unless the project intentionally moves to Spatie-driven tenant lifecycle handling.
+- Do not mix custom tenancy and Spatie tenancy casually; choose one source of truth.
+
+Use current custom tenancy if:
+- the app uses one database;
+- tenant isolation is by `organization_id` column;
+- branches share customer/member data inside the organization;
+- tenant context comes from JWT/header/subdomain and is applied through middleware/global scopes.
+
+Use Spatie Multitenancy only if you need:
+- package-managed current tenant lifecycle;
+- tenant-aware tasks/actions;
+- tenant-aware queues/jobs;
+- switching DB/cache/filesystem/mail config per tenant;
+- future multi-database tenancy;
+- a deliberate migration from custom context to Spatie's tenant context.
 
 Risk:
 - Future agents may assume tenancy is package-driven while actual code is custom organization-context driven.
+- Having both partially wired can create conflicting current-tenant sources.
+
+Decision:
+- For now, document as optional/deferred.
+- Prefer hardening the existing custom `organization_id` tenancy first.
+- Revisit Spatie Multitenancy only after tests prove what custom tenancy lacks.
 
 ---
 
