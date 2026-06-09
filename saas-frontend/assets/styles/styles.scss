@@ -1,0 +1,42 @@
+@use "@core/scss/template/libs/vuetify/index";
+
+@import "vue3-perfect-scrollbar/style.css";
+
+/*
+  ℹ️ global scss styles
+*/
+/*
+  ℹ️ global scss styles
+*/
+// @import "global/index"; // Removed missing file
+
+// SaaS Premium Theme Overrides
+:root {
+  /* Slate & Indigo Palette (Tailwind-inspired) */
+  --v-theme-primary: 99, 102, 241; /* Indigo-500 */
+}
+
+.text-h1, .text-h2, .text-h3, .text-h4, .text-h5 {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  letter-spacing: -0.025em !important;
+  color: #0F172A; /* Slate-900 */
+}
+
+.text-body-1, .text-body-2, p {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  color: #475569; /* Slate-600 */
+}
+
+/* Soften strong Vuetify shadows */
+.v-card.elevation-6 {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Premium Button Sytles */
+.v-btn--size-x-large {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border-radius: 12px;
+}
+
+@import './bento.scss';
