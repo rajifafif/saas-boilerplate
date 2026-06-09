@@ -7,6 +7,58 @@ Reusable Laravel + Nuxt SaaS starter with tenant-aware authentication, organizat
 - Backend: Laravel 12, PHP 8.2+, JWT auth, Spatie permissions, organization-scoped tenancy.
 - Frontend: Nuxt/Vue/Vuetify. Use Bun for frontend commands.
 
+## Features
+
+### Tenant and organization core
+
+- Organization-first multi-tenant SaaS foundation.
+- Organization-scoped data isolation using `organization_id` as the tenant boundary.
+- Multi-organization user membership support.
+- Active organization context and organization switching.
+- Branch/location management under each organization.
+- Branch-scoped role assignments for multi-location operations.
+
+### Authentication and users
+
+- JWT-based login and refresh-token flow.
+- Authenticated profile endpoint and account context endpoints.
+- Demo user seeding for platform admin, organization manager, and member personas.
+- User/team management surfaces for organization administrators.
+- Neutral profile and account settings surfaces.
+
+### RBAC and permissions
+
+- Spatie Permission-backed RBAC.
+- Organization-scoped role definitions.
+- Branch/team-scoped role assignment support.
+- Seeded neutral SaaS permission catalog for dashboard, organization, branch, users, roles, profile, billing, and audit surfaces.
+- Permission-aware navigation and management shell.
+- Regression coverage for permission seeder drift, branch-scoped RBAC, and tenant isolation.
+
+### SaaS operations
+
+- Generic dashboard and navigation shell ready for domain-specific modules.
+- Organization settings and branch management foundations.
+- Billing/subscription surface placeholders for future payment lifecycle implementation.
+- Audit/activity-log package included for tenant-aware operational history.
+- Media, export, PDF, Firebase, Typesense, Telescope, and ClickHouse packages available for product-specific extension.
+
+### Frontend application
+
+- Nuxt/Vue/Vuetify admin frontend.
+- Public landing, pricing, help center, privacy, login, registration, and password reset surfaces.
+- Authenticated dashboard, profile, users/team, roles/permissions, and generic management shell.
+- Bun-first frontend workflow with typecheck and production build scripts.
+- Legacy business-specific modules removed from the active product surface.
+
+### Developer experience
+
+- Fresh local bootstrap commands for backend and frontend.
+- SQLite smoke database option for disposable backend verification.
+- Seeded local demo accounts for fast acceptance testing.
+- API smoke-test examples for login, profile, current organization, and navigation.
+- Backend automated tests covering core SaaS contracts.
+
 ## Fresh local setup
 
 Backend:
