@@ -22,6 +22,13 @@ export default [
     action: 'read' as Actions,
   },
   {
+    title: 'Branches',
+    icon: { icon: 'tabler-map-pin' },
+    to: 'manage-branches',
+    subject: 'Branch' as Subjects,
+    action: 'read' as Actions,
+  },
+  {
     title: 'Roles',
     icon: { icon: 'tabler-shield-check' },
     to: 'manage-roles',

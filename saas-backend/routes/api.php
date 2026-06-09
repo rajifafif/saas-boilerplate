@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AppController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\ModuleController;
 use App\Http\Controllers\Api\NavigationController;
 use App\Http\Controllers\Api\OptionController;
@@ -42,6 +43,9 @@ Route::middleware(['jwt'])->group(function () {
     Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('change-password', [ProfileController::class, 'changePassword'])->name('profile.change-password');
 
+    // Explicit neutral Branch Management API. Organization context is resolved from JWT/X-Organization-ID.
+    Route::apiResource('branches', BranchController::class)->names('branches');
+
     // Organization Management (Multi-Tenant)
     Route::prefix('organizations')->group(function () {
         Route::get('/', [OrganizationController::class, 'index'])->name('organizations.index');
@@ -49,6 +53,9 @@ Route::middleware(['jwt'])->group(function () {
         Route::get('/{organization}/show', [OrganizationController::class, 'show'])->name('organizations.show');
         Route::post('/{organization}/switch', [OrganizationController::class, 'switch'])->name('organizations.switch');
         Route::post('/{organization}/set-default', [OrganizationController::class, 'setDefault'])->name('organizations.set-default');
+
+        // Branch Management scoped to an organization URL.
+        Route::apiResource('branches', BranchController::class)->names('organizations.branches');
 
         // Roles & Permissions Management
         Route::resource('roles', RoleController::class);

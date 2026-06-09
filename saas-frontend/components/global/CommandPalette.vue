@@ -6,6 +6,7 @@ const router = useRouter()
 const commands = [
   { id: 'dashboard', title: 'Open Dashboard', icon: 'tabler-layout-dashboard', to: '/manage' },
   { id: 'team', title: 'Manage Team', icon: 'tabler-users', to: '/manage/users/staff' },
+  { id: 'branches', title: 'Manage Branches', icon: 'tabler-map-pin', to: '/manage/branches' },
   { id: 'roles', title: 'Manage Roles', icon: 'tabler-shield-check', to: '/manage/roles' },
   { id: 'profile', title: 'Open Profile', icon: 'tabler-user-circle', to: '/profile' },
   { id: 'settings', title: 'Account Settings', icon: 'tabler-settings', to: '/manage/account-settings/account' },

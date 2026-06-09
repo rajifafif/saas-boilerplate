@@ -90,16 +90,6 @@ class RegisterController extends Controller
                 $role = 'owner';
             }
 
-            // 4. Create member record (if joining)
-            if ($isJoiningOrg && $user->person) {
-                $user->person->member()->create([
-                    'id' => $user->id,
-                    'user_id' => $user->id,
-                    'organization_id' => $organization->id,
-                    'level_id' => null,
-                ]);
-            }
-
             DB::commit();
 
             return response()->json([

@@ -462,14 +462,6 @@ class AuthController extends Controller
                 'name' => $name,
             ]);
 
-            $person->member()->create([
-                'id' => $user->id,
-                'project_id' => '',
-                'user_id' => $user->id,
-                'store_id' => null,
-                'level_id' => null
-            ]);
-
             // Attach avatar from Firebase if available
             if (isset($claims['picture'])) {
                 $this->attachFirebaseAvatar($person, $claims['picture']);
