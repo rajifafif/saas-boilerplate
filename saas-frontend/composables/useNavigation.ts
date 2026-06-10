@@ -4,13 +4,29 @@ import { useApi } from './useApi'
 /**
  * Navigation item from backend
  */
+export interface BackendNavAction {
+  id: string
+  title: string
+  slug: string
+  type: 'action'
+  permission: string
+  meta?: Record<string, unknown>
+}
+
 export interface BackendNavItem {
+  id?: string
   subheader?: string
   title?: string
+  slug?: string
+  type?: 'page'
   to?: string
   icon?: string
+  permission?: string | null
   permissions?: string[]
+  children?: BackendNavItem[]
+  actions?: BackendNavAction[]
   items?: BackendNavItem[]
+  meta?: Record<string, unknown>
 }
 
 /**
@@ -53,25 +69,34 @@ export function useNavigation() {
    * Transform backend nav items to frontend format
    */
   const transformNavItems = (items: BackendNavItem[]): VerticalNavItems => {
+    const mapPage = (item: BackendNavItem): any => {
+      const children = item.children?.map(mapPage).filter(Boolean) ?? []
+
+      return {
+        title: item.title,
+        to: item.to,
+        icon: item.icon ? { icon: item.icon } : undefined,
+        children: children.length ? children : undefined,
+        permission: item.permission,
+        actions: item.actions ?? [],
+      }
+    }
+
     return items.flatMap((section) => {
       const result: any[] = []
-      
-      // Add subheader if present
+
+      // Backward compatibility for old grouped config response.
       if (section.subheader) {
         result.push({ heading: section.subheader })
       }
-      
-      // Add items
+
       if (section.items) {
-        section.items.forEach((item) => {
-          result.push({
-            title: item.title,
-            to: item.to,
-            icon: item.icon ? { icon: item.icon } : undefined,
-          })
-        })
+        section.items.forEach((item) => result.push(mapPage(item)))
+        return result
       }
-      
+
+      result.push(mapPage(section))
+
       return result
     })
   }

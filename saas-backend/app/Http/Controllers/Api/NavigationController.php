@@ -28,12 +28,15 @@ class NavigationController extends Controller
         // Get role from JWT attributes (set by middleware) or fallback to 'member'
         $role = $request->attributes->get('jwt_role') ?? 'member';
 
-        // If we have a user and organization context, get full navigation with permissions
-        $organizationId = $request->attributes->get('organization_id');
+        // If we have a user and organization context, get full navigation with permissions.
+        // jwt middleware stores this as jwt_org_id; TenantMiddleware stores organization_id.
+        $organizationId = $request->attributes->get('organization_id')
+            ?? $request->attributes->get('jwt_org_id');
 
         if ($user && $organizationId) {
             $organization = \App\Models\Organization::find($organizationId);
             if ($organization) {
+                app()->instance('organization_id', $organization->id);
                 $navigation = $this->navigationService->getNavigation($user, $organization);
             } else {
                 $navigation = $this->navigationService->getNavigationByRole($role);

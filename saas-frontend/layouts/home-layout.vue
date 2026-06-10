@@ -11,7 +11,13 @@ const { layoutAttrs, injectSkinClasses } = useSkins()
 injectSkinClasses()
 
 // Get navigation from backend
-const { navigation, homeRoute, isLoading, fetchNavigation } = useNavigation()
+const { navigation, isLoading, fetchNavigation } = useNavigation()
+
+const flattenPages = (items: typeof navigation.value): typeof navigation.value => {
+  return items.flatMap(item => [item, ...flattenPages(item.children ?? [])])
+}
+
+const quickNavigationItems = computed(() => flattenPages(navigation.value).filter(item => item.to).slice(0, 8))
 
 // Fetch navigation on mount
 onMounted(async () => {
@@ -52,42 +58,37 @@ onMounted(async () => {
       >
         <!-- Quick Navigation Cards -->
         <div
-          v-if="navigation.length > 0"
+          v-if="quickNavigationItems.length > 0"
           class="mb-6"
         >
           <h6 class="text-h6 mb-4">
             Quick Actions
           </h6>
           <VRow>
-            <template
-              v-for="(section, sectionIndex) in navigation"
-              :key="sectionIndex"
+            <VCol
+              v-for="item in quickNavigationItems"
+              :key="item.id || item.slug || item.title"
+              cols="6"
+              sm="4"
+              md="3"
             >
-              <VCol
-                v-for="(item, itemIndex) in section.items || []"
-                :key="`${sectionIndex}-${itemIndex}`"
-                cols="6"
-                sm="4"
-                md="3"
+              <VCard
+                :to="item.to"
+                class="nav-card text-center pa-4"
+                hover
+                flat
+                border
               >
-                <VCard
-                  :to="item.to"
-                  class="nav-card text-center pa-4"
-                  hover
-                  flat
-                  border
-                >
-                  <VIcon
-                    :icon="item.icon || 'tabler-circle'"
-                    size="32"
-                    class="mb-2 text-primary"
-                  />
-                  <div class="text-body-2 font-weight-medium">
-                    {{ item.title }}
-                  </div>
-                </VCard>
-              </VCol>
-            </template>
+                <VIcon
+                  :icon="item.icon || 'tabler-circle'"
+                  size="32"
+                  class="mb-2 text-primary"
+                />
+                <div class="text-body-2 font-weight-medium">
+                  {{ item.title }}
+                </div>
+              </VCard>
+            </VCol>
           </VRow>
         </div>
 
@@ -112,23 +113,18 @@ onMounted(async () => {
 
     <!-- Bottom Navigation (Mobile) -->
     <VBottomNavigation
-      v-if="navigation.length > 0"
+      v-if="quickNavigationItems.length > 0"
       grow
       class="d-md-none home-bottom-nav"
     >
-      <template
-        v-for="(section, sectionIndex) in navigation"
-        :key="sectionIndex"
+      <VBtn
+        v-for="item in quickNavigationItems.slice(0, 4)"
+        :key="item.id || item.slug || item.title"
+        :to="item.to"
       >
-        <VBtn
-          v-for="(item, itemIndex) in (section.items || []).slice(0, 4)"
-          :key="`${sectionIndex}-${itemIndex}`"
-          :to="item.to"
-        >
-          <VIcon :icon="item.icon || 'tabler-circle'" />
-          <span>{{ item.title }}</span>
-        </VBtn>
-      </template>
+        <VIcon :icon="item.icon || 'tabler-circle'" />
+        <span>{{ item.title }}</span>
+      </VBtn>
     </VBottomNavigation>
   </div>
 </template>

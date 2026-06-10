@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\ModuleController;
 use App\Http\Controllers\Api\NavigationController;
+use App\Http\Controllers\Api\NavigationItemController;
 use App\Http\Controllers\Api\OptionController;
 use App\Http\Controllers\Api\OrganizationController;
 use App\Http\Controllers\Api\PasswordResetController;
@@ -35,6 +36,10 @@ Route::middleware(['jwt'])->group(function () {
     Route::get('navigation', [NavigationController::class, 'index']);
 
     // Generic app/platform modules
+    Route::prefix('platform')->name('platform.')->group(function () {
+        Route::post('navigation-items/reorder', [NavigationItemController::class, 'reorder'])->name('navigation-items.reorder');
+        Route::apiResource('navigation-items', NavigationItemController::class)->names('navigation-items');
+    });
     Route::resource('modules', ModuleController::class);
 
     // Profile and account management

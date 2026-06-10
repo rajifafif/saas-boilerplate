@@ -9,6 +9,12 @@ class PermissionCatalog
             'explicit' => [
                 'organization.update',
                 'organization.manage_billing',
+                'navigation.view',
+                'navigation.manage',
+                'navigation.create',
+                'navigation.update',
+                'navigation.delete',
+                'navigation.reorder',
                 'branch.manage',
                 'role.view',
                 'role.create',

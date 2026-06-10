@@ -17,6 +17,7 @@ class SaaSSeeder extends Seeder
     {
         $this->call([
             PermissionSeeder::class,
+            NavigationSeeder::class,
             RoleSeeder::class,
         ]);
 

@@ -12,14 +12,27 @@ import NavBarI18n from '@core/components/I18n.vue'
 import { VerticalNavLayout } from '@layouts'
 
 // Composables
-import { useFilteredNavigation } from '@/composables/useFilteredNavigation'
+import { useNavigation } from '@/composables/useNavigation'
+import { useOrganizationStore } from '@/stores/organizationStore'
 
-// Use filtered navigation based on permissions
-const { filteredNavItems } = useFilteredNavigation()
+// Use backend dynamic navigation as the single authenticated sidebar source.
+const organizationStore = useOrganizationStore()
+const { navItems, fetchNavigation } = useNavigation()
+
+onMounted(async () => {
+  await fetchNavigation()
+})
+
+watch(
+  () => [organizationStore.currentOrganization?.id, organizationStore.currentBranch?.id],
+  async () => {
+    await fetchNavigation()
+  },
+)
 </script>
 
 <template>
-  <VerticalNavLayout :nav-items="filteredNavItems">
+  <VerticalNavLayout :nav-items="navItems">
     <!-- 👉 navbar -->
     <template #navbar="{ toggleVerticalOverlayNavActive }">
       <div class="d-flex h-100 align-center">

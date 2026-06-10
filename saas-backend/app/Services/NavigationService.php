@@ -2,118 +2,128 @@
 
 namespace App\Services;
 
+use App\Models\NavigationItem;
 use App\Models\Organization;
+use App\Models\Role;
 use App\Models\User;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class NavigationService
 {
     /**
-     * Get navigation for a user based on their role in the organization.
+     * Get dynamic navigation tree for a user in the active organization.
      */
     public function getNavigation(User $user, Organization $organization): array
     {
-        // Get user's role in this organization
-        $membership = $user->organizations()
-            ->where('organization_id', $organization->id)
-            ->first();
+        $items = NavigationItem::query()
+            ->whereNull('parent_id')
+            ->where('type', 'page')
+            ->where('is_active', true)
+            ->with(['children.actions', 'children.children.actions', 'actions'])
+            ->orderBy('sort_order')
+            ->orderBy('title')
+            ->get();
 
-        $role = $membership?->pivot?->role ?? 'member';
-
-        // Map role to navigation type
-        $navType = config("navigation.role_mapping.{$role}", 'member');
-
-        // Get navigation for this role
-        $navigation = config("navigation.{$navType}", []);
-
-        // Filter by permissions if user has them
-        return $this->filterByPermissions($navigation, $user, $organization);
+        return $this->filterAndTransform($items, $user);
     }
 
     /**
-     * Get navigation by role directly (for API).
+     * Legacy API: role-only navigation cannot be permission-filtered safely.
      */
     public function getNavigationByRole(string $role): array
     {
-        $navType = config("navigation.role_mapping.{$role}", 'member');
-        return config("navigation.{$navType}", []);
+        return [];
     }
 
-    /**
-     * Get home route for a role.
-     */
     public function getHomeRoute(string $role): string
     {
         return config("navigation.home_routes.{$role}", '/');
     }
 
-    /**
-     * Filter navigation items by user permissions.
-     */
-    protected function filterByPermissions(array $navigation, User $user, Organization $organization): array
-    {
-        $filtered = [];
-
-        foreach ($navigation as $section) {
-            // Check section-level permissions
-            if (isset($section['permissions'])) {
-                if (!$this->userHasAnyPermission($user, $section['permissions'])) {
-                    continue;
-                }
-            }
-
-            $validItems = [];
-            if (isset($section['items'])) {
-                foreach ($section['items'] as $item) {
-                    // Check item-level permissions
-                    if (isset($item['permissions'])) {
-                        if (!$this->userHasAnyPermission($user, $item['permissions'])) {
-                            continue;
-                        }
-                    }
-                    $validItems[] = $item;
-                }
-            }
-
-            if (!empty($validItems) || !isset($section['items'])) {
-                $section['items'] = $validItems;
-                $filtered[] = $section;
-            }
-        }
-
-        return $filtered;
-    }
-
-    /**
-     * Check if user has any of the given permissions.
-     */
-    protected function userHasAnyPermission(User $user, array $permissions): bool
-    {
-        // Try to check permissions via Spatie
-        try {
-            return $user->hasAnyPermission($permissions);
-        } catch (\Exception $e) {
-            // If permission check fails, allow access (permissions not set up)
-            return true;
-        }
-    }
-
-    /**
-     * Initialize default navigation for an organization (legacy support).
-     */
-    public function seedOrganizationNavigation(Organization $organization): void
-    {
-        // Navigation is now role-based from config, no need to seed per-org
-        // This method kept for backward compatibility
-    }
-
-    /**
-     * Get layout type for a role.
-     * 
-     * @return string 'admin' for sidebar layout, 'home' for card-based layout
-     */
     public function getLayoutType(string $role): string
     {
         return config("navigation.layout_types.{$role}", 'home');
     }
-}
 
+    public function seedOrganizationNavigation(Organization $organization): void
+    {
+        // Dynamic navigation is global and permission-filtered per user/context.
+    }
+
+    /**
+     * @param Collection<int, NavigationItem> $items
+     */
+    private function filterAndTransform(Collection $items, User $user): array
+    {
+        return $items
+            ->map(fn (NavigationItem $item) => $this->transformVisibleItem($item, $user))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    private function transformVisibleItem(NavigationItem $item, User $user): ?array
+    {
+        if (!$this->canAccess($user, $item->permission_name)) {
+            return null;
+        }
+
+        $children = $this->filterAndTransform($item->children, $user);
+        $actions = $item->actions
+            ->filter(fn (NavigationItem $action) => $this->canAccess($user, $action->permission_name))
+            ->map(fn (NavigationItem $action) => [
+                'id' => $action->id,
+                'title' => $action->title,
+                'slug' => $action->slug,
+                'type' => 'action',
+                'permission' => $action->permission_name,
+                'meta' => $action->meta ?? [],
+            ])
+            ->values()
+            ->all();
+
+        return [
+            'id' => $item->id,
+            'title' => $item->title,
+            'slug' => $item->slug,
+            'type' => 'page',
+            'to' => $item->route,
+            'icon' => $item->icon,
+            'permission' => $item->permission_name,
+            'children' => $children,
+            'actions' => $actions,
+            'meta' => $item->meta ?? [],
+        ];
+    }
+
+    private function canAccess(User $user, ?string $permission): bool
+    {
+        if ($permission === null || $permission === '') {
+            return true;
+        }
+
+        $organizationId = app()->bound('organization_id') ? app('organization_id') : null;
+
+        if (!$organizationId) {
+            return false;
+        }
+
+        $roleNames = DB::table('organization_users')
+            ->where('user_id', $user->id)
+            ->where('organization_id', $organizationId)
+            ->pluck('role')
+            ->filter()
+            ->all();
+
+        if (empty($roleNames)) {
+            return false;
+        }
+
+        return Role::query()
+            ->where('organization_id', $organizationId)
+            ->whereIn('name', $roleNames)
+            ->whereHas('permissions', fn ($query) => $query->where('name', $permission))
+            ->exists();
+    }
+}
